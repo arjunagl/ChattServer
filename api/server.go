@@ -3,9 +3,12 @@ package api
 import (
 	"fmt"
 	"log"
-	"net/http"
 
+	"github.com/arjunagl/ChattServer/api/types"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+
+	"net/http"
 )
 
 var upgrader = websocket.Upgrader{
@@ -13,7 +16,8 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func reader(conn *websocket.Conn) {
+func reader(conn *websocket.Conn, connections types.ClientConnections) {
+	connections[uuid.New()] = types.ClientConnection{Connection: conn}
 	for {
 		// read in a message
 		messageType, p, err := conn.ReadMessage()
@@ -40,7 +44,7 @@ func reader(conn *websocket.Conn) {
 	}
 }
 
-func wsEndpoint(w http.ResponseWriter, r *http.Request) {
+func wsEndpoint(w http.ResponseWriter, r *http.Request, connections types.ClientConnections) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -50,15 +54,20 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	// helpful log statement to show connections
 	log.Println("Client Connected")
 
-	reader(ws)
+	reader(ws, connections)
 }
 
+// StartServer Starts the server
 func StartServer() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello World")
 	})
 
-	http.HandleFunc("/ws", wsEndpoint)
+	connections := make(types.ClientConnections)
+	http.HandleFunc("/ws/", func(w http.ResponseWriter, r *http.Request) {
+		wsEndpoint(w, r, connections)
+	})
 
+	fmt.Println("Listening for incoming connections")
 	http.ListenAndServe(":9990", nil)
 }
