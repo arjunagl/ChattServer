@@ -3,9 +3,9 @@ package api
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/arjunagl/ChattServer/api/types"
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
 	"net/http"
@@ -16,8 +16,8 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func reader(conn *websocket.Conn, connections types.ClientConnections) {
-	connections[uuid.New()] = types.ClientConnection{Connection: conn}
+func reader(conn *websocket.Conn, clientID string, connections types.ClientConnections) {
+	connections[clientID] = types.ClientConnection{Connection: conn}
 	for {
 		// read in a message
 		messageType, p, err := conn.ReadMessage()
@@ -46,15 +46,13 @@ func reader(conn *websocket.Conn, connections types.ClientConnections) {
 
 func wsEndpoint(w http.ResponseWriter, r *http.Request, connections types.ClientConnections) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	clientID := strings.Split(r.URL.String(), "/")[2]
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 	}
 
-	// helpful log statement to show connections
-	log.Println("Client Connected")
-
-	reader(ws, connections)
+	reader(ws, clientID, connections)
 }
 
 // StartServer Starts the server

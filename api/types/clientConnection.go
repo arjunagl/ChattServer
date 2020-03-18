@@ -1,7 +1,6 @@
 package types
 
 import (
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -11,4 +10,4 @@ type ClientConnection struct {
 }
 
 // ClientConnections existing client connections
-type ClientConnections = map[uuid.UUID]ClientConnection
+type ClientConnections = map[string]ClientConnection
