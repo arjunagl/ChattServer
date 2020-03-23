@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/arjunagl/ChattServer/api/types"
+	"github.com/arjunagl/ChattServer/api/workers"
 	"github.com/gorilla/websocket"
 
 	"net/http"
@@ -17,31 +18,9 @@ var upgrader = websocket.Upgrader{
 }
 
 func reader(conn *websocket.Conn, clientID string, connections types.ClientConnections) {
-	connections[clientID] = types.ClientConnection{Connection: conn}
-	for {
-		// read in a message
-		messageType, p, err := conn.ReadMessage()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		// print out that message for clarity
-		fmt.Println(string(p))
-
-		if err := conn.WriteMessage(messageType, p); err != nil {
-			log.Println(err)
-			return
-		}
-
-		// send the message to the client
-		msg := []byte("Let's start to talk something.")
-		err = conn.WriteMessage(websocket.TextMessage, msg)
-		if err != nil {
-			log.Println(err)
-		}
-		fmt.Println("Successfully sent the message to the client")
-
-	}
+	connections[clientID] = types.ClientConnection{SocketConnection: conn}
+	worker := workers.NewWorker(types.ClientConnection{SocketConnection: conn})
+	worker.Run()
 }
 
 func wsEndpoint(w http.ResponseWriter, r *http.Request, connections types.ClientConnections) {
