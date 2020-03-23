@@ -1,7 +1,6 @@
 package types
 
 import (
-	"github.com/arjunagl/ChattServer/api/types"
 	"github.com/gorilla/websocket"
 )
 
@@ -9,7 +8,7 @@ import (
 type ClientConnection struct {
 	SocketConnection  *websocket.Conn
 	CientID           string
-	ClientConnections types.ClientConnections
+	ClientConnections ClientConnections
 }
 
 // ClientConnections existing client connections
