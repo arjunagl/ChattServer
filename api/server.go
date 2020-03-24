@@ -19,7 +19,7 @@ var upgrader = websocket.Upgrader{
 
 func reader(conn *websocket.Conn, clientID string, connections types.ClientConnections) {
 	connections[clientID] = types.ClientConnection{SocketConnection: conn}
-	worker := workers.NewWorker(types.ClientConnection{SocketConnection: conn})
+	worker := workers.NewWorker(types.ClientConnection{SocketConnection: conn, CientID: clientID, ClientConnections: connections})
 	worker.Run()
 }
 

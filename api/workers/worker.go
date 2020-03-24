@@ -7,6 +7,7 @@ import (
 
 	"github.com/arjunagl/ChattServer/api/types"
 	"github.com/arjunagl/ChattServer/api/types/commands"
+	"github.com/arjunagl/ChattServer/api/workers/handlers"
 )
 
 type Worker interface {
@@ -18,28 +19,27 @@ type worker struct {
 }
 
 func (w worker) Run() {
-	for {
-		_, message, err := w.ClientConnection.SocketConnection.ReadMessage()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		fmt.Println("Message received")
-		fmt.Println(string(message))
+	go func() {
+		for {
+			_, message, err := w.ClientConnection.SocketConnection.ReadMessage()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			fmt.Println(string(message))
 
-		// Parse incoming message
-		incomingCommand := &commands.WorkerCommand{}
-		if err := json.Unmarshal(message, incomingCommand); err != nil {
-			fmt.Println(err)
+			// Parse incoming message
+			incomingCommand := commands.WorkerCommand{}
+			if err := json.Unmarshal(message, &incomingCommand); err != nil {
+				fmt.Printf("error parsing json %v", err)
+			}
+			switch incomingCommand.Command {
+			case commands.SendMessage:
+				handlers.SendMessage(incomingCommand)
+			}
 		}
-		fmt.Println("successfully parsed")
-		fmt.Println(incomingCommand.Command)
-		switch incomingCommand.Command {
-		case commands.SendMessage:
-			fmt.Print("Have to send the message")
-
-		}
-	}
+	}()
+	fmt.Printf("Launched worker for %v", w.ClientConnection.CientID)
 }
 
 func NewWorker(clientConnection types.ClientConnection) Worker {

@@ -1,11 +1,11 @@
 package commands
 
 type SendMessageCommandDetails struct {
-	message string
-	to      string
+	Message string
+	To      string
 }
 
 type SendMessageCommand struct {
 	WorkerCommand
-	details SendMessageCommandDetails
+	Details SendMessageCommandDetails
 }
