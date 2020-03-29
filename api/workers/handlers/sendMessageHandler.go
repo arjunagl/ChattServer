@@ -4,13 +4,12 @@ import (
 	"fmt"
 
 	"github.com/arjunagl/ChattServer/api/types/commands"
+	"github.com/mitchellh/mapstructure"
 )
 
 func SendMessage(command commands.WorkerCommand) {
+
 	sendMessageCommand := commands.SendMessageCommand{}
-	// sendMessageCommand.Command = command
-	fmt.Printf("Incoming command %v", sendMessageCommand.Details.Message)
-	// if err := json.Unmarshal(message, &incomingCommand); err != nil {
-	// 	fmt.Printf("error parsing json %v", err)
-	// }
+	mapstructure.Decode(command.Details, &sendMessageCommand.Details)
+	fmt.Printf("Send message details %v", sendMessageCommand.Details.Message)
 }

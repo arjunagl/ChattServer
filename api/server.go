@@ -17,13 +17,15 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func reader(conn *websocket.Conn, clientID string, connections types.ClientConnections) {
-	connections[clientID] = types.ClientConnection{SocketConnection: conn}
-	worker := workers.NewWorker(types.ClientConnection{SocketConnection: conn, CientID: clientID, ClientConnections: connections})
+var workerChannels = make(types.WorkerChannels)
+
+func reader(conn *websocket.Conn, clientID string) {
+	worker := workers.NewWorker(types.ClientConnection{SocketConnection: conn, CientID: clientID})
+
 	worker.Run()
 }
 
-func wsEndpoint(w http.ResponseWriter, r *http.Request, connections types.ClientConnections) {
+func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	clientID := strings.Split(r.URL.String(), "/")[2]
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -31,7 +33,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request, connections types.Client
 		log.Println(err)
 	}
 
-	reader(ws, clientID, connections)
+	reader(ws, clientID)
 }
 
 // StartServer Starts the server
@@ -42,9 +44,8 @@ func StartServer() {
 
 	connections := make(types.ClientConnections)
 	http.HandleFunc("/ws/", func(w http.ResponseWriter, r *http.Request) {
-		wsEndpoint(w, r, connections)
+		wsEndpoint(w, r)
 	})
 
-	fmt.Println("Listening for incoming connections")
 	http.ListenAndServe(":9990", nil)
 }

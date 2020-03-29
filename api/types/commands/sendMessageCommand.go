@@ -7,5 +7,5 @@ type SendMessageCommandDetails struct {
 
 type SendMessageCommand struct {
 	WorkerCommand
-	Details SendMessageCommandDetails
+	Details SendMessageCommandDetails `json:"details"`
 }

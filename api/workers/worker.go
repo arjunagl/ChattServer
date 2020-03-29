@@ -16,6 +16,7 @@ type Worker interface {
 
 type worker struct {
 	ClientConnection types.ClientConnection
+	CommChannel chan commands.WorkerCommand
 }
 
 func (w worker) Run() {
@@ -26,24 +27,26 @@ func (w worker) Run() {
 				log.Println(err)
 				return
 			}
-			fmt.Println(string(message))
 
+			fmt.Printf("Message: %v/n", string(message))
 			// Parse incoming message
 			incomingCommand := commands.WorkerCommand{}
 			if err := json.Unmarshal(message, &incomingCommand); err != nil {
 				fmt.Printf("error parsing json %v", err)
 			}
+
 			switch incomingCommand.Command {
 			case commands.SendMessage:
 				handlers.SendMessage(incomingCommand)
 			}
 		}
 	}()
-	fmt.Printf("Launched worker for %v", w.ClientConnection.CientID)
+	fmt.Printf("Launched worker for %v\n", w.ClientConnection.CientID)
 }
 
 func NewWorker(clientConnection types.ClientConnection) Worker {
 	return worker{
 		ClientConnection: clientConnection,
+		CommChannel: make (chan commands.WorkerCommand)
 	}
 }

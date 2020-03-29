@@ -6,10 +6,6 @@ import (
 
 // ClientConnection client connection structure
 type ClientConnection struct {
-	SocketConnection  *websocket.Conn
-	CientID           string
-	ClientConnections ClientConnections
+	SocketConnection *websocket.Conn
+	CientID          string
 }
-
-// ClientConnections existing client connections
-type ClientConnections = map[string]ClientConnection
