@@ -14,12 +14,20 @@ type Worker interface {
 	Run()
 }
 
-type worker struct {
+type WorkerImp struct {
 	ClientConnection types.ClientConnection
-	CommChannel chan commands.WorkerCommand
+	CommChannel      chan commands.WorkerCommand
+	WorkerChannels   types.WorkerChannels
 }
 
-func (w worker) Run() {
+func buildHandlers(clientId string) map[commands.Command]interface{} {
+	messageHandlers := make(map[commands.Command]interface{})
+	messageHandlers[commands.SendMessage] = handlers.NewSendMessageHandler(clientId)
+	return messageHandlers
+}
+
+func (w WorkerImp) Run() {
+	mesasgeHandlers := buildHandlers(w.ClientConnection.CientID)
 	go func() {
 		for {
 			_, message, err := w.ClientConnection.SocketConnection.ReadMessage()
@@ -28,7 +36,7 @@ func (w worker) Run() {
 				return
 			}
 
-			fmt.Printf("Message: %v/n", string(message))
+			fmt.Printf("Message: %v\n", string(message))
 			// Parse incoming message
 			incomingCommand := commands.WorkerCommand{}
 			if err := json.Unmarshal(message, &incomingCommand); err != nil {
@@ -37,16 +45,26 @@ func (w worker) Run() {
 
 			switch incomingCommand.Command {
 			case commands.SendMessage:
-				handlers.SendMessage(incomingCommand)
+				messageHandler := mesasgeHandlers[commands.SendMessage].(handlers.SendMessageHandler)
+				messageHandler.SendMessageToChannel(incomingCommand, w.WorkerChannels)
 			}
 		}
 	}()
 	fmt.Printf("Launched worker for %v\n", w.ClientConnection.CientID)
+
+	select {
+	case command := <-w.CommChannel:
+		messageHandler := mesasgeHandlers[commands.SendMessage].(handlers.SendMessageHandler)
+		messageHandler.SendMessgeToClient(command, w.ClientConnection)
+	}
 }
 
-func NewWorker(clientConnection types.ClientConnection) Worker {
-	return worker{
+func NewWorker(clientConnection types.ClientConnection, workerChannels types.WorkerChannels) Worker {
+	worker := WorkerImp{
 		ClientConnection: clientConnection,
-		CommChannel: make (chan commands.WorkerCommand)
+		CommChannel:      make(chan commands.WorkerCommand),
+		WorkerChannels:   workerChannels,
 	}
+	workerChannels[clientConnection.CientID] = worker.CommChannel
+	return worker
 }

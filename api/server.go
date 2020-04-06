@@ -20,8 +20,7 @@ var upgrader = websocket.Upgrader{
 var workerChannels = make(types.WorkerChannels)
 
 func reader(conn *websocket.Conn, clientID string) {
-	worker := workers.NewWorker(types.ClientConnection{SocketConnection: conn, CientID: clientID})
-
+	worker := workers.NewWorker(types.ClientConnection{SocketConnection: conn, CientID: clientID}, workerChannels)
 	worker.Run()
 }
 
@@ -42,7 +41,6 @@ func StartServer() {
 		fmt.Fprintf(w, "Hello World")
 	})
 
-	connections := make(types.ClientConnections)
 	http.HandleFunc("/ws/", func(w http.ResponseWriter, r *http.Request) {
 		wsEndpoint(w, r)
 	})
