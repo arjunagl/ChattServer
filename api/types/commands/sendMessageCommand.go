@@ -7,15 +7,15 @@ type SendMessageCommandDetails struct {
 
 type SendMessageCommand struct {
 	WorkerCommand
-	Details SendMessageCommandDetails `json:"details"`
+	SendMessageCommandDetails `mapstructure:",squash"`
 }
 
 type SendMesasgeSocketCommandDetails struct {
-	SendMessageCommandDetails
-	From string
+	SendMessageCommandDetails `mapstructure:",squash"`
+	From                      string
 }
 
 type SendMessageSocketCommand struct {
-	WorkerCommand,
-	Details SendMesasgeSocketCommandDetails `json:"details"`
+	WorkerCommand
+	SendMesasgeSocketCommandDetails `mapstructure:",squash"`
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -21,20 +22,23 @@ func NewSendMessageHandler(clientId string) SendMessageHandler {
 func (sendMessageHandler SendMessageHandler) SendMessageToChannel(command commands.WorkerCommand, workerChannels types.WorkerChannels) {
 
 	sendMessageCommand := commands.SendMessageCommand{}
-	mapstructure.Decode(command.Details, &sendMessageCommand.Details)
+	fmt.Printf("Outgoing %+v\n", command.Details)
+	mapstructure.Decode(command.Details, &sendMessageCommand.SendMessageCommandDetails)
 
 	// select the destination client channel
-	destinationChannel := workerChannels[sendMessageCommand.Details.To]
+	destinationChannel := workerChannels[sendMessageCommand.To]
 	destinationChannel <- command
 
 }
 
 func (sendMessageHandler SendMessageHandler) SendMessgeToClient(command commands.WorkerCommand, clientConnection types.ClientConnection) {
-	sendMessageCommand := commands.SendMessageSocketCommand{}
-	mapstructure.Decode(command.Details, &sendMessageCommand.Details)
-	sendMessageCommand.Details.From = sendMessageHandler.ClientId
-	fmt.Printf("Sending the following details %+v", sendMessageCommand)
-	msg := []byte(sendMessageCommand.Details.Message)
+	fmt.Printf("Incoming %+v\n", command.Details)
+	sendMessageSocketCommand := commands.SendMessageSocketCommand{}
+	mapstructure.Decode(command.Details, &sendMessageSocketCommand)
+	sendMessageSocketCommand.From = sendMessageHandler.ClientId
+	fmt.Printf("Sending the following details %+v\n", sendMessageSocketCommand.SendMesasgeSocketCommandDetails)
+	jsonEncodedCommand, _ := json.Marshal(sendMessageSocketCommand.SendMesasgeSocketCommandDetails)
+	msg := []byte(jsonEncodedCommand)
 	err := clientConnection.SocketConnection.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		log.Println(err)

@@ -36,7 +36,6 @@ func (w WorkerImp) Run() {
 				return
 			}
 
-			fmt.Printf("Message: %v\n", string(message))
 			// Parse incoming message
 			incomingCommand := commands.WorkerCommand{}
 			if err := json.Unmarshal(message, &incomingCommand); err != nil {
