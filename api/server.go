@@ -7,6 +7,7 @@ import (
 
 	"github.com/arjunagl/ChattServer/api/types"
 	"github.com/arjunagl/ChattServer/api/workers"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 
 	"net/http"
@@ -37,13 +38,30 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 
 // StartServer Starts the server
 func StartServer() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	r := mux.NewRouter()
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello World")
 	})
 
-	http.HandleFunc("/ws/", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/ws/", func(w http.ResponseWriter, r *http.Request) {
 		wsEndpoint(w, r)
 	})
+
+	r.HandleFunc("/subscribe", func(w http.ResponseWriter, r *http.Request) {
+
+	}).Methods("POST")
+
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	fmt.Fprintf(w, "Hello World")
+	// })
+
+	// http.HandleFunc("/ws/", func(w http.ResponseWriter, r *http.Request) {
+	// 	wsEndpoint(w, r)
+	// })
+
+	// http.HandleFunc("/subscribe", func(w http.ResponseWriter, r *http.Request) {
+	// })
+	http.Handle("/", r)
 
 	http.ListenAndServe(":9990", nil)
 }
