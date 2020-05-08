@@ -2,6 +2,30 @@
 
 
 [[projects]]
+  digest = "1:ee56f0d258769fa78aadc2129efe8832cf89edf10062ff12b66dd32ab0c16fe3"
+  name = "github.com/SherClockHolmes/webpush-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "358c5ab877144efa20d3e889826d31d45ea3bec2"
+  version = "1.1.1"
+
+[[projects]]
+  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
+
+[[projects]]
+  digest = "1:b117faf01abdbdadd7b8ceeae74cd1369c1b073fef41aee8b674c9d704a54c16"
+  name = "github.com/gorilla/handlers"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8a3748addc242fc560bd6d4ff28b0374c010b1b4"
+  version = "v1.4.2"
+
+[[projects]]
   digest = "1:25ebe6496abb289ef977c081b2d49f56dd97c32db4ca083d37f95923909ced02"
   name = "github.com/gorilla/mux"
   packages = ["."]
@@ -25,10 +49,20 @@
   revision = "694aaefbc689be1915c2ef39e880409057931a94"
   version = "v1.2.2"
 
+[[projects]]
+  branch = "master"
+  digest = "1:8e4024a39f73657fda08fc46908003698955a5f1fdeba7ceb6801070720de922"
+  name = "golang.org/x/crypto"
+  packages = ["hkdf"]
+  pruneopts = "UT"
+  revision = "0848c9571904fcbcb24543358ca8b5a7dbfde875"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/SherClockHolmes/webpush-go",
+    "github.com/gorilla/handlers",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
     "github.com/mitchellh/mapstructure",
