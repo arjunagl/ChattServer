@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/SherClockHolmes/webpush-go"
 	"github.com/arjunagl/ChattServer/api/types"
 	"github.com/arjunagl/ChattServer/api/types/commands"
 	"github.com/arjunagl/ChattServer/api/workers/handlers"
@@ -15,9 +16,10 @@ type Worker interface {
 }
 
 type WorkerImp struct {
-	ClientConnection types.ClientConnection
-	CommChannel      chan commands.WorkerCommand
-	WorkerChannels   types.WorkerChannels
+	ClientConnection   types.ClientConnection
+	CommChannel        chan commands.WorkerCommand
+	WorkerChannels     types.WorkerChannels
+	ClientSubscription *webpush.Subscription
 }
 
 func buildHandlers(clientId string) map[commands.Command]interface{} {

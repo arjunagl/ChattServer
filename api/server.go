@@ -1,11 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
-
 	"net/http"
 
+	"github.com/SherClockHolmes/webpush-go"
 	"github.com/arjunagl/ChattServer/api/types"
 	"github.com/arjunagl/ChattServer/api/workers"
 	"github.com/gorilla/handlers"
@@ -41,23 +43,24 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 
 func handleSubscription(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Handling subscription")
-	// s := &webpush.Subscription{}
-	// json.Unmarshal([]byte("<YOUR_SUBSCRIPTION>"), s)
+	clientID := mux.Vars(r)["clientID"]
+	s := &webpush.Subscription{}
+	if decodeErr := json.NewDecoder(r.Body).Decode(s); decodeErr != nil && decodeErr != io.EOF {
+		fmt.Println("Error decoding subscription")
+	}
 
-	// // Send Notification
-	// resp, err := webpush.SendNotification([]byte("Test"), s, &webpush.Options{
-	// 	Subscriber:      "chatt-server@chatt-server.com",
-	// 	VAPIDPublicKey:  "BM221uCcUB6tJBektDBpuhrFtvECNs7mcShfG6NUnUUR1lV7vGWmWMm7eNZ0ztW4IjDPsGOAG9sQOkjP1hC_23A",
-	// 	VAPIDPrivateKey: "9LhvZAWJpanJGmkhA416muEYCWOyqzCbV_5P-Z_WR-c",
-	// 	TTL:             30,
-	// })
-	// if err != nil {
-	// 	fmt.Printf("Error sending push notification = %v", err)
-	// }
-	// w.Header().Set("Access-Control-Allow-Origin", "*")
-	// w.WriteHeader(200)
-	// w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// defer resp.Body.Close()
+	// Send Notification
+	resp, err := webpush.SendNotification([]byte("Push subscription successful"), s, &webpush.Options{
+		Subscriber:      "chatt-server@chatt-server.com",
+		VAPIDPublicKey:  "BM221uCcUB6tJBektDBpuhrFtvECNs7mcShfG6NUnUUR1lV7vGWmWMm7eNZ0ztW4IjDPsGOAG9sQOkjP1hC_23A",
+		VAPIDPrivateKey: "9LhvZAWJpanJGmkhA416muEYCWOyqzCbV_5P-Z_WR-c",
+		TTL:             30,
+	})
+	if err != nil {
+		fmt.Printf("Error sending push notification = %v", err)
+	}
+	defer resp.Body.Close()
+	w.WriteHeader(200)
 }
 
 // StartServer Starts the server
@@ -71,7 +74,7 @@ func StartServer() {
 		wsEndpoint(w, r)
 	})
 
-	r.HandleFunc("/subscribe", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/subscribe/{clientID}", func(w http.ResponseWriter, r *http.Request) {
 		handleSubscription(w, r)
 	}).Methods("POST", "OPTIONS")
 
