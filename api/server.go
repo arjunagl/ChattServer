@@ -23,7 +23,7 @@ var upgrader = websocket.Upgrader{
 var workerChannels = make(types.WorkerChannels)
 
 func reader(conn *websocket.Conn, clientID string) {
-	worker := workers.NewWorker(types.ClientConnection{SocketConnection: conn, CientID: clientID}, workerChannels)
+	worker := workers.NewWorker(clientID, types.ClientConnection{SocketConnection: conn}, workerChannels)
 	worker.Run()
 }
 
@@ -44,6 +44,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 func handleSubscription(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Handling subscription")
 	clientID := mux.Vars(r)["clientID"]
+	goWorker := workers[clientID]
 	s := &webpush.Subscription{}
 	if decodeErr := json.NewDecoder(r.Body).Decode(s); decodeErr != nil && decodeErr != io.EOF {
 		fmt.Println("Error decoding subscription")

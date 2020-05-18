@@ -7,5 +7,4 @@ import (
 // ClientConnection client connection structure
 type ClientConnection struct {
 	SocketConnection *websocket.Conn
-	CientID          string
 }

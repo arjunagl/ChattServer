@@ -16,6 +16,7 @@ type Worker interface {
 }
 
 type WorkerImp struct {
+	ClientID           string
 	ClientConnection   types.ClientConnection
 	CommChannel        chan commands.WorkerCommand
 	WorkerChannels     types.WorkerChannels
@@ -29,7 +30,7 @@ func buildHandlers(clientId string) map[commands.Command]interface{} {
 }
 
 func (w WorkerImp) Run() {
-	mesasgeHandlers := buildHandlers(w.ClientConnection.CientID)
+	mesasgeHandlers := buildHandlers(w.ClientID)
 	go func() {
 		for {
 			_, message, err := w.ClientConnection.SocketConnection.ReadMessage()
@@ -51,7 +52,7 @@ func (w WorkerImp) Run() {
 			}
 		}
 	}()
-	fmt.Printf("Launched worker for %v\n", w.ClientConnection.CientID)
+	fmt.Printf("Launched worker for %v\n", w.ClientID)
 
 	select {
 	case command := <-w.CommChannel:
@@ -60,12 +61,16 @@ func (w WorkerImp) Run() {
 	}
 }
 
-func NewWorker(clientConnection types.ClientConnection, workerChannels types.WorkerChannels) Worker {
+func NewWorker(clientID string, clientConnection types.ClientConnection, workerChannels types.WorkerChannels) Worker {
 	worker := WorkerImp{
 		ClientConnection: clientConnection,
 		CommChannel:      make(chan commands.WorkerCommand),
 		WorkerChannels:   workerChannels,
 	}
-	workerChannels[clientConnection.CientID] = worker.CommChannel
+	workerChannels[clientID] = worker.CommChannel
 	return worker
+}
+
+func SetClientSubscription(clientID string, clientsubscription *webpush.Subscription) {
+	// Set the clientID
 }
