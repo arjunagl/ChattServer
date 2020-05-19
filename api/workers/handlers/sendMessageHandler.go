@@ -32,11 +32,9 @@ func (sendMessageHandler SendMessageHandler) SendMessageToChannel(command comman
 }
 
 func (sendMessageHandler SendMessageHandler) SendMessgeToClient(command commands.WorkerCommand, clientConnection types.ClientConnection) {
-	fmt.Printf("Incoming %+v\n", command.Details)
 	sendMessageSocketCommand := commands.SendMessageSocketCommand{}
 	mapstructure.Decode(command.Details, &sendMessageSocketCommand)
 	sendMessageSocketCommand.From = sendMessageHandler.ClientId
-	fmt.Printf("Sending the following details %+v\n", sendMessageSocketCommand.SendMesasgeSocketCommandDetails)
 	jsonEncodedCommand, _ := json.Marshal(sendMessageSocketCommand.SendMesasgeSocketCommandDetails)
 	msg := []byte(jsonEncodedCommand)
 	err := clientConnection.SocketConnection.WriteMessage(websocket.TextMessage, msg)

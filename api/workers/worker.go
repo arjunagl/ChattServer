@@ -9,6 +9,7 @@ import (
 	"github.com/arjunagl/ChattServer/api/types"
 	"github.com/arjunagl/ChattServer/api/types/commands"
 	"github.com/arjunagl/ChattServer/api/workers/handlers"
+	"github.com/mitchellh/mapstructure"
 )
 
 type Worker interface {
@@ -26,11 +27,12 @@ type WorkerImp struct {
 func buildHandlers(clientId string) map[commands.Command]interface{} {
 	messageHandlers := make(map[commands.Command]interface{})
 	messageHandlers[commands.SendMessage] = handlers.NewSendMessageHandler(clientId)
+	messageHandlers[commands.SetClientSubscription] = handlers.NewSendWebPushMessageHandler(clientId)
 	return messageHandlers
 }
 
 func (w WorkerImp) Run() {
-	mesasgeHandlers := buildHandlers(w.ClientID)
+	messageHandlers := buildHandlers(w.ClientID)
 	go func() {
 		for {
 			_, message, err := w.ClientConnection.SocketConnection.ReadMessage()
@@ -47,7 +49,7 @@ func (w WorkerImp) Run() {
 
 			switch incomingCommand.Command {
 			case commands.SendMessage:
-				messageHandler := mesasgeHandlers[commands.SendMessage].(handlers.SendMessageHandler)
+				messageHandler := messageHandlers[commands.SendMessage].(handlers.SendMessageHandler)
 				messageHandler.SendMessageToChannel(incomingCommand, w.WorkerChannels)
 			}
 		}
@@ -56,13 +58,27 @@ func (w WorkerImp) Run() {
 
 	select {
 	case command := <-w.CommChannel:
-		messageHandler := mesasgeHandlers[commands.SendMessage].(handlers.SendMessageHandler)
-		messageHandler.SendMessgeToClient(command, w.ClientConnection)
+		switch command.Command {
+		case commands.SendMessage:
+			messageHandler := messageHandlers[commands.SendMessage].(handlers.SendMessageHandler)
+			messageHandler.SendMessgeToClient(command, w.ClientConnection)
+		case commands.SetClientSubscription:
+			webPushMessageHandler := messageHandlers[commands.SetClientSubscription].(handlers.SendWebPushMessageHandler)
+			setSubscriptionCommand := commands.SetClientSubscriptionCommand{}
+			mapstructure.Decode(command.Details, &setSubscriptionCommand.SetClientSubscriptionCommandDetails)
+			fmt.Printf("Setting the client subscription %v", setSubscriptionCommand.SetClientSubscriptionCommandDetails.ClientSubscription)
+			w.ClientSubscription = setSubscriptionCommand.SetClientSubscriptionCommandDetails.ClientSubscription
+
+			// Just a simple test
+			webPushMessageHandler.SendMessageToClient("testing", w.ClientSubscription)
+		}
+
 	}
 }
 
 func NewWorker(clientID string, clientConnection types.ClientConnection, workerChannels types.WorkerChannels) Worker {
 	worker := WorkerImp{
+		ClientID:         clientID,
 		ClientConnection: clientConnection,
 		CommChannel:      make(chan commands.WorkerCommand),
 		WorkerChannels:   workerChannels,

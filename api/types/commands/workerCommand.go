@@ -3,11 +3,13 @@ package commands
 type Command string
 
 const (
-	SendMessage Command = "SendMessage"
+	SendMessage           Command = "SendMessage"
+	SetClientSubscription Command = "SetClientSubscription"
 )
 
 var workerCommands = [...]string{
 	"SendMessage",
+	"SetClientSubscription",
 }
 
 type WorkerCommand struct {
